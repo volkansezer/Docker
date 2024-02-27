@@ -1,41 +1,43 @@
 version: '4'
-
 services:
-  mysql: #Salt
+  mysql:
     container_name: MySQL
-    image: mysql:8.0
-    ports:
-      - '3306:3306'
-    expose:
-      - 3306
+    image: mysql:8.3
+    #command: --default-authentication-plugin=mysql_native_password
+    #command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+    restart: always #always, no, on-failure, unless-stopped
     volumes:
-      - ./volumes/mysql:/var/lib/mysql
+      - ./mysql:/var/lib/mysql
     environment:
-      MYSQL_DATABASE: 'volkansezer'
-      MYSQL_USER: 'volkan'
-      MYSQL_PASSWORD: 'sezer'
-      MYSQL_ROOT_PASSWORD: 'sezer'
-      MYSQL_ALLOW_EMPTY_PASSWORD: true
+      MYSQL_DATABASE: volkansezer
+      MYSQL_USER: volkan
+      MYSQL_PASSWORD: sezer
+      MYSQL_ROOT_PASSWORD: sezer
+    ports:
+      - 3306:3306
 
-  phpmyadmin: #Salt
+  phpmyadmin:
     container_name: PHPMyAdmin
-    image: phpmyadmin/phpmyadmin
+    image: phpmyadmin:5.2
+    restart: always
     links:
-        - mysql
-    environment:
-      PMA_HOST: mysql     #PMA nerede çalışacak, oluşturduğumuz @4 "mysql" de çalışacak, onun adını veriyoruz 
-      PMA_USER: root
-      PMA_PASSWORD: sezer
+      - mysql
     depends_on:
       - mysql
     ports:
-      - "8081:80"
+      - 8090:80
+    environment:
+      PMA_ARBITRARY: 1
+      UPLOAD_LIMIT: 300M
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: sezer
 
   php:
     container_name: PHP
-    image: volkansezer/phpmysqli
-    # kurulumdan sonra Terminalde aç docker-php-ext-install mysqli komutunu çalıştır
+    restart: always
+    image: volkansezer/phpmysqli  # kurulumdan sonra Terminalde aç docker-php-ext-install mysqli komutunu çalıştır
     volumes:
-      - "./volumes/php/www:/var/www/html" # sync the current dir on local machine to the dir of container
+      - "./php:/var/www/html" # sync the current dir on local machine to the dir of container
     ports:
-      - 8080:80 
+      - 8080:80
